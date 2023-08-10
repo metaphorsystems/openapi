@@ -27,7 +27,7 @@ paths:
                 numResults:
                   type: integer
                   example: 10
-                  description: "Number of search results to return. Maximum 500. Default 100"
+                  description: "Number of search results to return. Default 10. Up to 30 for basic plans. Up to thousands for custom plans."
                 includeDomains:
                   type: array
                   items:
@@ -60,6 +60,12 @@ paths:
                   format: date-time
                   description: "If specified, only links with a published date before endPublishedDate will be returned. Must be specified in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ). Note that for some links, we have no published date, and these links will be excluded from the results if endPublishedDate is specified."
                   example: "2023-12-31"
+                useAutoprompt:
+                  type: boolean
+                  description: "If true, your query will be converted to a Metaphor query. Latency will be much higher. Default: false"
+                type:
+                  type: string
+                  description: "The Type of search, 'keyword' or 'neural'. Default: neural"
               required:
                 - query
       responses:
@@ -75,6 +81,9 @@ paths:
                     description: "A list of search results containing title, URL, published date, author, and score."
                     items:
                       $ref: "#/components/schemas/Result"
+                  autopromptString:
+                    type: string
+                    description: "The Metaphor query created by the autoprompt functionality."
               example:
                 results:
                   - title: "Google Search is Dying"
@@ -83,6 +92,7 @@ paths:
                     author: "Dmitri Brereton"
                     id: "dYQFhHy3tPwMTaBvDFuugg"
                     score: 0.4
+                autopromptString: "Some Metaphor optimized query (this is fake)"
       security:
         - apikey: []
   /findSimilar:
@@ -104,7 +114,7 @@ paths:
                 numResults:
                   type: integer
                   example: 10
-                  description: "Number of search results to return. Maximum 500. Default 100"
+                  description: "Number of search results to return. Default 10. Up to 30 for basic plans. Up to thousands for custom plans."
                 includeDomains:
                   type: array
                   items:
@@ -177,7 +187,7 @@ paths:
               type: string
           required: true
           description: "An array of document IDs obtained from either /search or /findSimilar endpoints."
-          example: ["0bU6rTFJWNyHxW2dp66ahQ", "1aI5kUIO8VuLxT3db47cnM"]
+          example: ["31gfpFb2i3Hbsm8nDE33YA", "1aI5kUIO8VuLxT3db47cnM"]
       responses:
         "200":
           description: OK
@@ -188,10 +198,13 @@ paths:
                 properties:
                   contents:
                     type: array
-                    description: "A list of document contents containing URL, title, and extract. In the future, we will support more content types."
+                    description: "A list of document contents containing id, URL, title, and extract. In the future, we will support more content types."
                     items:
                       type: object
                       properties:
+                        id:
+                          type: string
+                          description: "The ID of the document."
                         url:
                           type: string
                           format: uri
@@ -204,7 +217,8 @@ paths:
                           description: "The first 1000 tokens of content in the document. This is designed for current language models to process."
               example:
                 results:
-                  - url: https://dkb.blog/p/google-search-is-dying
+                  - id: "31gfpFb2i3Hbsm8nDE33YA"
+                    url: https://dkb.blog/p/google-search-is-dying
                     title: "Google Search is Dying"
                     extract: "Google Search, once the crown jewel of the internet..."
       security:
@@ -238,6 +252,7 @@ components:
         score:
           type: number
           description: "A number from 0 to 1 representing similarity between the query/url and the result"
+          nullable: true
         id:
           type: string
           description: "The temporary ID for the document. Useful for /contents endpoint."
