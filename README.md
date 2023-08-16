@@ -1,3 +1,3 @@
-# Metaphor OpenAPI.yaml
+# Metaphor openapi.yaml
 
-This is our OpenAPI.yaml spec.
+This is our openapi.yaml spec.
